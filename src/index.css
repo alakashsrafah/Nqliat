@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: none;
+  }
+
+  /* Prevent auto zoom on iOS / Android inputs */
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="password"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Touch-friendly scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+  }
+}
+
+@layer utilities {
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
