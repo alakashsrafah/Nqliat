@@ -149,14 +149,14 @@ export const ReceiptVoucherForm: React.FC<ReceiptVoucherFormProps> = ({ currentU
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Main Settings Panel */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4 text-xs sm:text-sm">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-4 text-xs sm:text-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold text-slate-800 mb-1">صندوق الاستلام (حساب الصندوق المدين):</label>
+              <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">صندوق الاستلام (حساب الصندوق المدين):</label>
               <select
                 value={cashAccountCode}
                 onChange={(e) => setCashAccountCode(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 font-bold"
+                className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 font-bold"
               >
                 <option value="">-- اختر صندوق / بنك الاستلام --</option>
                 {cashAccounts.map((acc) => (
@@ -168,41 +168,42 @@ export const ReceiptVoucherForm: React.FC<ReceiptVoucherFormProps> = ({ currentU
             </div>
 
             <div>
-              <label className="block font-bold text-slate-800 mb-1">تاريخ السند:</label>
+              <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">تاريخ السند:</label>
               <input
                 type="date"
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 font-mono"
+                className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 font-mono font-bold"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-slate-800 mb-1">الوصف العام والبيان للسند:</label>
+            <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">الوصف العام والبيان للسند:</label>
             <input
               type="text"
               required
+              dir="auto"
               placeholder="مثال: قبض مبلغ مقابل إيجارات ونقل بضائع شحنة..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
+              className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 font-bold"
             />
           </div>
         </div>
 
         {/* Dynamic Credit Items Table */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
               <span>تفاصيل البنود الدائنة (المبالغ المقبوضة)</span>
             </h3>
 
             <button
               type="button"
               onClick={handleAddItem}
-              className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl text-xs flex items-center gap-1 border border-emerald-200 transition-colors"
+              className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200 font-bold rounded-xl text-xs flex items-center gap-1 border border-emerald-200 dark:border-emerald-800 transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>إضافة صف بند دائن</span>
@@ -213,14 +214,14 @@ export const ReceiptVoucherForm: React.FC<ReceiptVoucherFormProps> = ({ currentU
             {items.map((item, idx) => (
               <div
                 key={idx}
-                className="p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center text-xs"
+                className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center text-xs text-slate-900 dark:text-slate-100"
               >
                 <div className="sm:col-span-4">
-                  <label className="block text-[10px] text-slate-500 font-bold mb-0.5">الحساب الدائن (المقابل):</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-0.5">الحساب الدائن (المقابل):</label>
                   <select
                     value={item.account_code}
                     onChange={(e) => handleItemChange(idx, 'account_code', e.target.value)}
-                    className="w-full p-2 bg-white border border-slate-200 rounded-lg font-bold"
+                    className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg font-bold"
                   >
                     <option value="">-- اختر الحساب الدائن --</option>
                     {level4Accounts.map((acc) => (
@@ -232,7 +233,7 @@ export const ReceiptVoucherForm: React.FC<ReceiptVoucherFormProps> = ({ currentU
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-[10px] text-slate-500 font-bold mb-0.5">المبلغ:</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-0.5">المبلغ:</label>
                   <input
                     type="number"
                     step="any"
@@ -241,16 +242,16 @@ export const ReceiptVoucherForm: React.FC<ReceiptVoucherFormProps> = ({ currentU
                     placeholder="0.00"
                     value={item.amount === 0 ? '' : item.amount}
                     onChange={(e) => handleItemChange(idx, 'amount', e.target.value === '' ? 0 : parseFloat(e.target.value))}
-                    className="w-full p-2 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900"
+                    className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg font-mono font-bold text-slate-900 dark:text-slate-100"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-[10px] text-slate-500 font-bold mb-0.5">العملة:</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-0.5">العملة:</label>
                   <select
                     value={item.currency_code}
                     onChange={(e) => handleItemChange(idx, 'currency_code', e.target.value)}
-                    className="w-full p-2 bg-white border border-slate-200 rounded-lg font-bold"
+                    className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-900 dark:text-slate-100"
                   >
                     {currencies.map((c) => (
                       <option key={c.id} value={c.currency_code}>
@@ -261,7 +262,7 @@ export const ReceiptVoucherForm: React.FC<ReceiptVoucherFormProps> = ({ currentU
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-[10px] text-slate-500 font-bold mb-0.5">سعر الصرف:</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-0.5">سعر الصرف:</label>
                   <input
                     type="number"
                     step="0.0001"
@@ -269,14 +270,14 @@ export const ReceiptVoucherForm: React.FC<ReceiptVoucherFormProps> = ({ currentU
                     required
                     value={item.exchange_rate}
                     onChange={(e) => handleItemChange(idx, 'exchange_rate', parseFloat(e.target.value) || 1)}
-                    className="w-full p-2 bg-white border border-slate-200 rounded-lg font-mono font-bold"
+                    className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg font-mono font-bold text-slate-900 dark:text-slate-100"
                   />
                 </div>
 
                 <div className="sm:col-span-2 flex items-center justify-between gap-1 pt-3 sm:pt-0">
                   <div className="text-left leading-none">
-                    <span className="text-[9px] text-slate-400 block">المكافئ:</span>
-                    <span className="font-mono font-bold text-emerald-700 text-xs">
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500 block">المكافئ:</span>
+                    <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs">
                       {(item.amount * item.exchange_rate).toLocaleString()}
                     </span>
                   </div>
@@ -284,7 +285,7 @@ export const ReceiptVoucherForm: React.FC<ReceiptVoucherFormProps> = ({ currentU
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(idx)}
-                    className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors"
+                    className="p-1.5 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

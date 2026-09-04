@@ -1507,6 +1507,120 @@ class OfflineDatabase {
       };
     });
   }
+
+  public getVehicleAccountMovements(
+    vehicleId: number,
+    dateFrom?: string,
+    dateTo?: string
+  ) {
+    const vehicle = this.schema.vehicles.find((v) => v.id === vehicleId);
+    if (!vehicle) return null;
+
+    const vehicleShipments = this.schema.shipment_orders.filter((s) => s.vehicle_id === vehicleId && s.is_financially_posted === 1);
+    const shipmentVoucherIds = new Set(vehicleShipments.map((s) => s.voucher_id).filter((id): id is number => id !== null));
+
+    const entries = this.schema.journal_entries.filter((e) => {
+      const isVehicleAccount = e.account_code === vehicle.account_code;
+      const isShipmentVoucher = e.voucher_id ? shipmentVoucherIds.has(e.voucher_id) : false;
+      if (!isVehicleAccount && !isShipmentVoucher) return false;
+
+      if (dateFrom && e.entry_date < dateFrom) return false;
+      if (dateTo && e.entry_date > dateTo) return false;
+      return true;
+    });
+
+    entries.sort((a, b) => a.entry_date.localeCompare(b.entry_date) || a.voucher_id - b.voucher_id || a.id - b.id);
+
+    let runningEq = 0;
+    let totalDebit = 0;
+    let totalCredit = 0;
+    let totalEqDebit = 0;
+    let totalEqCredit = 0;
+
+    const rows = entries.map((entry) => {
+      const voucher = this.schema.voucher_header.find((v) => v.id === entry.voucher_id);
+      const acc = this.getAccountByCode(entry.account_code);
+
+      totalDebit += entry.debit;
+      totalCredit += entry.credit;
+      totalEqDebit += entry.equivalent_debit;
+      totalEqCredit += entry.equivalent_credit;
+
+      runningEq += entry.equivalent_credit - entry.equivalent_debit;
+
+      return {
+        ...entry,
+        account_name: acc?.account_name || entry.account_code,
+        voucher_number: voucher?.number || 0,
+        voucher_type_id: voucher?.type_id || 3,
+        running_eq_balance: runningEq,
+      };
+    });
+
+    return {
+      vehicle,
+      rows,
+      totalDebit,
+      totalCredit,
+      totalEqDebit,
+      totalEqCredit,
+      netEqBalance: totalEqCredit - totalEqDebit,
+    };
+  }
+
+  public getVehicleShipmentOrdersDetailed(
+    vehicleId: number,
+    dateFrom?: string,
+    dateTo?: string
+  ) {
+    const vehicle = this.schema.vehicles.find((v) => v.id === vehicleId);
+    if (!vehicle) return { vehicle: null, orders: [] };
+
+    let orders = this.schema.shipment_orders.filter((s) => s.vehicle_id === vehicleId);
+
+    if (dateFrom) {
+      orders = orders.filter((s) => s.departure_date >= dateFrom);
+    }
+    if (dateTo) {
+      orders = orders.filter((s) => s.departure_date <= dateTo);
+    }
+
+    orders.sort((a, b) => b.id - a.id);
+
+    const detailedOrders = orders.map((order) => {
+      const expenses = this.getShipmentExpenseItems(order.id);
+      const merchantAcc = this.getAccountByCode(order.merchant_account_code);
+      const voucher = order.voucher_id ? this.schema.voucher_header.find((v) => v.id === order.voucher_id) : null;
+
+      const tripEqRevenue = order.trip_amount * order.trip_exchange_rate;
+      const totalEqExpenses = expenses.reduce((sum, e) => sum + e.amount * e.exchange_rate, 0);
+      const netTripProfitEq = tripEqRevenue - totalEqExpenses;
+
+      const detailedExpenses = expenses.map((exp) => {
+        const acc = this.getAccountByCode(exp.account_code);
+        return {
+          ...exp,
+          account_name: acc?.account_name || exp.account_code,
+          equivalent_amount: exp.amount * exp.exchange_rate,
+        };
+      });
+
+      return {
+        order,
+        merchant_account_name: merchantAcc?.account_name || order.merchant_account_code,
+        voucher,
+        expenses: detailedExpenses,
+        tripEqRevenue,
+        totalEqExpenses,
+        netTripProfitEq,
+      };
+    });
+
+    return {
+      vehicle,
+      orders: detailedOrders,
+    };
+  }
 }
 
 export const db = new OfflineDatabase();
