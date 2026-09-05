@@ -80,8 +80,8 @@
             <label class="cursor-pointer bg-slate-950 border border-slate-800 hover:border-slate-700 p-3 rounded-xl flex items-center gap-2.5 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10">
               <input type="radio" name="licenseType" value="trial" class="text-amber-500 focus:ring-0">
               <div>
-                <span class="font-bold text-xs text-white block">تجريبي (أسبوع - 7 أيام)</span>
-                <span class="text-[11px] text-slate-400">صلاحية 7 أيام</span>
+                <span class="font-bold text-xs text-white block">تجريبي (Trial)</span>
+                <span class="text-[11px] text-slate-400">صلاحية 15 يوماً</span>
               </div>
             </label>
 
@@ -104,25 +104,15 @@
         </div>
 
         <!-- Custom Expiration (Optional) -->
-        <div id="customDaysWrapper" class="pt-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-400 mb-1">عدد الأيام المخصصة:</label>
-            <input 
-              type="number" 
-              id="customDays" 
-              placeholder="365"
-              class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-mono text-xs outline-none focus:border-amber-500"
-              value="365"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-400 mb-1">أو تحديد تاريخ الانتهاء بالروزنامة:</label>
-            <input 
-              type="date" 
-              id="customDate" 
-              class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-mono text-xs outline-none focus:border-amber-500"
-            />
-          </div>
+        <div id="customDaysWrapper" class="pt-1">
+          <label class="block text-xs font-bold text-slate-400 mb-1">أيام إضافية مخصصة (اختياري):</label>
+          <input 
+            type="number" 
+            id="customDays" 
+            placeholder="365"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-mono text-xs"
+            value="365"
+          />
         </div>
 
         <!-- Generate Button -->
@@ -226,7 +216,7 @@
     typeRadios.forEach(radio => {
       radio.addEventListener('change', (e) => {
         if (e.target.value === 'trial') {
-          customDaysInput.value = '7';
+          customDaysInput.value = '15';
           customDaysWrapper.classList.remove('hidden');
         } else if (e.target.value === 'annual') {
           customDaysInput.value = '365';
@@ -253,20 +243,12 @@
       // Calculate expiration timestamp
       let expiryDateStr = 'دائم مدى الحياة';
       let expiryTimestamp = 0;
-      const customDateVal = document.getElementById('customDate').value;
 
       if (selectedType !== 'lifetime') {
-        if (customDateVal) {
-          const d = new Date(customDateVal);
-          d.setHours(23, 59, 59, 999);
-          expiryTimestamp = d.getTime();
-          expiryDateStr = customDateVal;
-        } else {
-          const d = new Date();
-          d.setDate(d.getDate() + days);
-          expiryTimestamp = d.getTime();
-          expiryDateStr = d.toISOString().split('T')[0];
-        }
+        const d = new Date();
+        d.setDate(d.getDate() + days);
+        expiryTimestamp = d.getTime();
+        expiryDateStr = d.toISOString().split('T')[0];
       }
 
       // Build payload for hashing
@@ -298,7 +280,7 @@
       
       const badge = document.getElementById('badgeType');
       if (selectedType === 'trial') {
-        badge.textContent = 'ترخيص تجريبي (أسبوع - 7 أيام)';
+        badge.textContent = 'ترخيص تجريبي (15 يوم)';
         badge.className = 'text-[10px] font-black bg-blue-500 text-white px-2 py-0.5 rounded-md';
       } else if (selectedType === 'annual') {
         badge.textContent = 'ترخيص سنوي (سنة كاملة)';

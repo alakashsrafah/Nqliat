@@ -17,14 +17,12 @@ interface LicenseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLicenseChanged?: () => void;
-  isStartupPrompt?: boolean;
 }
 
 export const LicenseModal: React.FC<LicenseModalProps> = ({
   isOpen,
   onClose,
   onLicenseChanged,
-  isStartupPrompt = false,
 }) => {
   const [license, setLicense] = useState<LicenseInfo>(licenseService.getCurrentLicense());
   const [inputKey, setInputKey] = useState<string>('');
@@ -32,24 +30,6 @@ export const LicenseModal: React.FC<LicenseModalProps> = ({
   const [copiedId, setCopiedId] = useState<boolean>(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-
-  // Re-sync license state when modal opens
-  React.useEffect(() => {
-    if (isOpen) {
-      const current = licenseService.getCurrentLicense();
-      setLicense(current);
-      if (!current.isLicensed) {
-        setStatusMsg({
-          type: 'error',
-          text: current.isExpired && current.licenseKey
-            ? 'انتهت صلاحية مفتاح الترخيص الحالي. يرجى إدخال مفتاح تجديد جديد.'
-            : 'النظام حالياً غير مفعّل. يرجى إدخال مفتاح الترخيص لمتابعة العمل.',
-        });
-      } else {
-        setStatusMsg(null);
-      }
-    }
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -123,21 +103,14 @@ export const LicenseModal: React.FC<LicenseModalProps> = ({
             <div className="flex items-center justify-between">
               <span className="font-bold flex items-center gap-1.5">
                 {license.isLicensed ? (
-                  license.licenseType === 'trial' ? (
-                    <>
-                      <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                      <span>حالة النظام: فترة تجريبية مجانية (أسبوع)</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                      <span>حالة النظام: نُسخة مُرخّصة ونشطة</span>
-                    </>
-                  )
+                  <>
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <span>حالة النظام: نُسخة مُرخّصة ونشطة</span>
+                  </>
                 ) : (
                   <>
-                    <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-                    <span>حالة النظام: انتهت الفترة التجريبية / مطلوب تفعيل</span>
+                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <span>حالة النظام: غير مفعّل / تجريبي</span>
                   </>
                 )}
               </span>
@@ -148,27 +121,10 @@ export const LicenseModal: React.FC<LicenseModalProps> = ({
                   : license.licenseType === 'annual'
                   ? 'سنوي'
                   : license.licenseType === 'trial'
-                  ? 'تجريبي (أسبوع)'
+                  ? 'تجريبي'
                   : 'غير مرخص'}
               </span>
             </div>
-
-            {/* Trial Details Notification */}
-            {license.licenseType === 'trial' && (
-              <div className="mt-2.5 p-2.5 bg-slate-900/10 dark:bg-slate-950/40 rounded-xl text-xs space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-600 dark:text-slate-400">تاريخ أول عملية:</span>
-                  <span className="font-bold font-mono text-slate-800 dark:text-slate-200">
-                    {license.firstOperationAt || 'تبدأ عند أول عملية'}
-                  </span>
-                </div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                  {license.isExpired
-                    ? '⚠️ انتهت مهلة الأسبوع التجريبي من تاريخ أول عملية مسجلة.'
-                    : '💡 الفترة التجريبية مدتها أسبوع (7 أيام) تُحسب من تاريخ أول عملية مسجلة بالبرنامج.'}
-                </div>
-              </div>
-            )}
 
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
               <div>
@@ -177,12 +133,8 @@ export const LicenseModal: React.FC<LicenseModalProps> = ({
               </div>
               <div>
                 <span className="text-slate-500 dark:text-slate-400 block">الأيام المتبقية:</span>
-                <span className={`font-bold ${license.isExpired ? 'text-rose-600 dark:text-rose-400' : ''}`}>
-                  {license.licenseType === 'lifetime'
-                    ? '∞ غير محدود'
-                    : license.isExpired
-                    ? '0 يوم (منتهي)'
-                    : `${license.daysRemaining} يوم`}
+                <span className="font-bold">
+                  {license.licenseType === 'lifetime' ? '∞ غير محدود' : `${license.daysRemaining} يوم`}
                 </span>
               </div>
             </div>

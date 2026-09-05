@@ -11,7 +11,6 @@ import {
   AccountType,
   VoucherTypeId,
 } from '../types';
-import { licenseService } from '../services/licenseService';
 
 const STORAGE_KEY = 'nkliat_offline_db_v2';
 
@@ -260,67 +259,20 @@ class OfflineDatabase {
 
   private loadDatabase(): DatabaseSchema {
     try {
-      let data = localStorage.getItem(STORAGE_KEY);
-      // Fallback: check older database storage keys from prior versions
-      if (!data) {
-        data = localStorage.getItem('nkliat_offline_db') || localStorage.getItem('nkliat_database');
-      }
-
+      const data = localStorage.getItem(STORAGE_KEY);
       if (data) {
         const parsed = JSON.parse(data);
-
-        // 1. Ensure all core accounts exist (merge missing default accounts)
-        const accounts: ChartOfAccount[] = Array.isArray(parsed.chart_of_accounts) && parsed.chart_of_accounts.length > 0
-          ? [...parsed.chart_of_accounts]
-          : [...DEFAULT_ACCOUNTS];
-        
-        for (const defAccount of DEFAULT_ACCOUNTS) {
-          if (!accounts.some((a) => a.account_code === defAccount.account_code)) {
-            accounts.push(defAccount);
-          }
-        }
-
-        // 2. Normalize and ensure all users have passwords and admin exists
-        const rawUsers: User[] = Array.isArray(parsed.users) && parsed.users.length > 0
-          ? parsed.users
-          : DEFAULT_USERS;
-        
-        const normalizedUsers: User[] = rawUsers.map((u: any) => ({
-          ...u,
-          password_hash: u.password_hash && u.password_hash.trim() !== '' ? u.password_hash : '123',
-          role: u.role || 'محاسب',
-          user_type: u.user_type || 'موظف',
-          user_code: u.user_code || String(u.id + 100),
-        }));
-
-        if (!normalizedUsers.some((u) => u.username === 'admin')) {
-          normalizedUsers.unshift(DEFAULT_USERS[0]);
-        }
-
-        // 3. Ensure currencies list has basic currency
-        const currencies: Currency[] = Array.isArray(parsed.currencies) && parsed.currencies.length > 0
-          ? [...parsed.currencies]
-          : [...DEFAULT_CURRENCIES];
-        for (const defCurr of DEFAULT_CURRENCIES) {
-          if (!currencies.some((c) => c.currency_code === defCurr.currency_code)) {
-            currencies.push(defCurr);
-          }
-        }
-
-        const schema: DatabaseSchema = {
-          chart_of_accounts: accounts,
-          currencies: currencies,
-          users: normalizedUsers,
-          vehicles: Array.isArray(parsed.vehicles) && parsed.vehicles.length > 0 ? parsed.vehicles : DEFAULT_VEHICLES,
-          drivers: Array.isArray(parsed.drivers) && parsed.drivers.length > 0 ? parsed.drivers : DEFAULT_DRIVERS,
-          voucher_header: Array.isArray(parsed.voucher_header) ? parsed.voucher_header : DEFAULT_VOUCHER_HEADERS,
-          journal_entries: Array.isArray(parsed.journal_entries) ? parsed.journal_entries : DEFAULT_JOURNAL_ENTRIES,
-          shipment_orders: Array.isArray(parsed.shipment_orders) ? parsed.shipment_orders : DEFAULT_SHIPMENT_ORDERS,
-          shipment_expense_items: Array.isArray(parsed.shipment_expense_items) ? parsed.shipment_expense_items : DEFAULT_SHIPMENT_EXPENSES,
+        return {
+          chart_of_accounts: parsed.chart_of_accounts || DEFAULT_ACCOUNTS,
+          currencies: parsed.currencies || DEFAULT_CURRENCIES,
+          users: parsed.users || DEFAULT_USERS,
+          vehicles: parsed.vehicles || DEFAULT_VEHICLES,
+          drivers: parsed.drivers || DEFAULT_DRIVERS,
+          voucher_header: parsed.voucher_header || DEFAULT_VOUCHER_HEADERS,
+          journal_entries: parsed.journal_entries || DEFAULT_JOURNAL_ENTRIES,
+          shipment_orders: parsed.shipment_orders || DEFAULT_SHIPMENT_ORDERS,
+          shipment_expense_items: parsed.shipment_expense_items || DEFAULT_SHIPMENT_EXPENSES,
         };
-
-        this.saveDatabase(schema);
-        return schema;
       }
     } catch (e) {
       console.error('Failed to load database from localStorage', e);
@@ -346,21 +298,6 @@ class OfflineDatabase {
       this.schema = data;
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.schema));
-  }
-
-  public getSchema(): DatabaseSchema {
-    return JSON.parse(JSON.stringify(this.schema));
-  }
-
-  public setSchema(newSchema: DatabaseSchema): boolean {
-    if (
-      Array.isArray(newSchema.chart_of_accounts) &&
-      Array.isArray(newSchema.currencies)
-    ) {
-      this.saveDatabase(newSchema);
-      return true;
-    }
-    return false;
   }
 
   public exportJSON(): string {
@@ -635,23 +572,6 @@ class OfflineDatabase {
     this.saveDatabase();
   }
 
-  public getUserById(id: number): User | undefined {
-    return this.schema.users.find((u) => u.id === id);
-  }
-
-  public getUserByUsername(username: string): User | undefined {
-    return this.schema.users.find((u) => u.username.toLowerCase() === username.trim().toLowerCase());
-  }
-
-  public authenticateUser(username: string, passwordHash: string): User | null {
-    const user = this.getUserByUsername(username);
-    if (!user) return null;
-    if (user.password_hash && user.password_hash === passwordHash) {
-      return user;
-    }
-    return null;
-  }
-
   // --- VEHICLES ---
   public getVehicles(): Vehicle[] {
     return [...this.schema.vehicles];
@@ -800,20 +720,6 @@ class OfflineDatabase {
     return vouchersOfType.reduce((max, v) => Math.max(max, v.number), 0) + 1;
   }
 
-  // Verify license or active trial period before executing financial operations
-  private checkLicenseAndRecordOperation() {
-    const lic = licenseService.getCurrentLicense();
-    if (!lic.isLicensed) {
-      throw new Error(
-        lic.isTrialFromFirstOp
-          ? 'انتهت الفترة التجريبية (أسبوع من تاريخ أول عملية مسجلة). يرجى إدخال مفتاح الترخيص لمتابعة إدخال وحفظ العمليات.'
-          : 'النظام غير مرخص أو انتهت صلاحية الترخيص. يرجى تفعيل البرنامج بواسطة مفتاح الترخيص.'
-      );
-    }
-    // Record first operation timestamp if this is the first operation
-    licenseService.recordFirstOperationIfNeeded();
-  }
-
   // Receipt Voucher Creation
   public createReceiptVoucher(data: {
     cash_account_code: string;
@@ -828,8 +734,6 @@ class OfflineDatabase {
       description: string;
     }[];
   }): { header: VoucherHeader; entries: JournalEntry[] } {
-    this.checkLicenseAndRecordOperation();
-
     if (!data.items || data.items.length === 0) {
       throw new Error('يجب إضافة بند واحد على الأقل للسند');
     }
@@ -920,8 +824,6 @@ class OfflineDatabase {
       description: string;
     }[];
   }): { header: VoucherHeader; entries: JournalEntry[] } {
-    this.checkLicenseAndRecordOperation();
-
     if (!data.items || data.items.length === 0) {
       throw new Error('يجب إضافة بند واحد على الأقل للسند');
     }
@@ -1011,8 +913,6 @@ class OfflineDatabase {
       description: string;
     }[];
   }): { header: VoucherHeader; entries: JournalEntry[] } {
-    this.checkLicenseAndRecordOperation();
-
     if (!data.items || data.items.length < 2) {
       throw new Error('قيد اليومية يقتضي وجود بندين على الأقل (مدين ودائن)');
     }
@@ -1102,8 +1002,6 @@ class OfflineDatabase {
     expenseItems: Omit<ShipmentExpenseItem, 'id' | 'shipment_order_id'>[],
     existingId?: number
   ): ShipmentOrder {
-    this.checkLicenseAndRecordOperation();
-
     // Validate unique ref number
     if (
       this.schema.shipment_orders.some(

@@ -15,9 +15,7 @@ import {
   HardDrive,
   Sun,
   Moon,
-  Key,
-  Wifi,
-  Server,
+  Key
 } from 'lucide-react';
 import { licenseService } from '../services/licenseService';
 
@@ -27,7 +25,6 @@ interface HeaderProps {
   currentUser: User | null;
   onSwitchUser?: (u: User | null) => void;
   onOpenLogin?: () => void;
-  onLogout?: () => void;
   onOpenBackup?: () => void;
   onOpenLicense?: () => void;
   isDarkMode?: boolean;
@@ -39,7 +36,6 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigate,
   currentUser,
   onOpenLogin,
-  onLogout,
   onOpenLicense,
   isDarkMode = false,
   onToggleTheme,
@@ -54,7 +50,6 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'currencies', label: 'العملات والصرف', icon: <Coins className="w-4 h-4" /> },
     { id: 'reports', label: 'التقارير المالية', icon: <PieChart className="w-4 h-4" /> },
     { id: 'users', label: 'المستخدمين', icon: <UserCog className="w-4 h-4" /> },
-    { id: 'server_settings', label: 'إعدادات السيرفر والشبكة', icon: <Wifi className="w-4 h-4 text-sky-400" /> },
   ];
 
   return (
@@ -95,46 +90,22 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
 
-            {onOpenLicense && (() => {
-              const lic = licenseService.getCurrentLicense();
-              const isTrial = lic.licenseType === 'trial';
-              return (
-                <button
-                  onClick={onOpenLicense}
-                  title={`حالة الترخيص: ${isTrial ? `فترة تجريبية (متبقي ${lic.daysRemaining} يوم)` : lic.isLicensed ? 'نسخة مرخصة' : 'الترخيص منتهي'}`}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs transition-colors border cursor-pointer ${
-                    !lic.isLicensed
-                      ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border-rose-500/60 font-bold animate-pulse'
-                      : isTrial
-                      ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/50 font-bold'
-                      : 'bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border-emerald-700/80 font-bold'
-                  }`}
-                >
-                  <Key className={`w-3.5 h-3.5 ${!lic.isLicensed ? 'text-rose-400' : 'text-amber-400'}`} />
-                  <span className="hidden sm:inline">
-                    {!lic.isLicensed
-                      ? 'انتهت التجربة - تفعيل'
-                      : isTrial
-                      ? `تجريبي (${lic.daysRemaining} يوم)`
-                      : 'النظام مرخص'}
-                  </span>
-                </button>
-              );
-            })()}
-
-            <button
-              onClick={() => onNavigate('server_settings')}
-              title="إعدادات السيرفر والربط الشبكي المحلي (LAN)"
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs transition-colors border cursor-pointer ${
-                activeTab === 'server_settings'
-                  ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold'
-                  : 'bg-slate-800/80 hover:bg-slate-700 text-sky-300 border-slate-700'
-              }`}
-            >
-              <Wifi className="w-4 h-4 text-sky-400" />
-              <span className="hidden lg:inline font-bold">السيرفر والشبكة</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse hidden sm:inline-block" />
-            </button>
+            {onOpenLicense && (
+              <button
+                onClick={onOpenLicense}
+                title="حالة ترخيص النظام وتفعيله"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs transition-colors border cursor-pointer ${
+                  licenseService.getCurrentLicense().isLicensed
+                    ? 'bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border-emerald-700/80 font-bold'
+                    : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/50 font-bold animate-pulse'
+                }`}
+              >
+                <Key className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden sm:inline">
+                  {licenseService.getCurrentLicense().isLicensed ? 'النظام مرخص' : 'تفعيل الترخيص'}
+                </span>
+              </button>
+            )}
 
             <button
               onClick={() => onNavigate('backup_restore')}
@@ -158,14 +129,13 @@ export const Header: React.FC<HeaderProps> = ({
                   <div className="text-xs font-bold text-white">{currentUser.username}</div>
                   <div className="text-[10px] text-slate-400">{currentUser.user_type}</div>
                 </div>
-                {onLogout && (
+                {onOpenLogin && (
                   <button
-                    onClick={onLogout}
-                    title="تسجيل الخروج وقفل النظام"
-                    className="mr-1.5 px-2 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 hover:text-white border border-rose-500/40 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+                    onClick={onOpenLogin}
+                    title="تغيير المستخدم"
+                    className="mr-1 p-1 hover:bg-slate-700 text-slate-400 hover:text-white rounded-md transition-colors cursor-pointer"
                   >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">خروج</span>
+                    <LogOut className="w-4 h-4" />
                   </button>
                 )}
               </div>

@@ -18,9 +18,6 @@ import { ReportsViewer } from './components/ReportsViewer';
 import { UsersManager } from './components/UsersManager';
 import { BackupRestore } from './components/BackupRestore';
 import { LicenseModal } from './components/LicenseModal';
-import { ServerSettingsView } from './components/ServerSettingsView';
-import { LoginScreen } from './components/LoginScreen';
-import { licenseService } from './services/licenseService';
 
 import {
   Plus,
@@ -42,18 +39,7 @@ import {
 export default function App() {
   const [activeTab, setActiveTab] = useState<ViewTab>('dashboard');
   const [users, setUsers] = useState<User[]>(db.getUsers());
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    try {
-      const savedUserId = localStorage.getItem('nkliat_active_user_id');
-      if (savedUserId) {
-        const found = db.getUsers().find((u) => u.id === Number(savedUserId));
-        if (found) return found;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return null;
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(users[0] || null);
 
   // Theme Toggle State
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -82,14 +68,6 @@ export default function App() {
   const [shipmentFilter, setShipmentFilter] = useState<string>('all');
   const [selectedVoucherForPrint, setSelectedVoucherForPrint] = useState<VoucherHeader | null>(null);
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState<boolean>(false);
-
-  // Check license on app startup
-  React.useEffect(() => {
-    const check = licenseService.verifyLicenseOnStartup();
-    if (check.needsPrompt) {
-      setIsLicenseModalOpen(true);
-    }
-  }, []);
 
   const refreshData = () => {
     setUsers(db.getUsers());
@@ -174,28 +152,6 @@ export default function App() {
 
   const basicCurrencySymbol = db.getCurrencies().find((c) => c.currency_type === 'basic')?.currency_symbol || 'ر.ي';
 
-  const handleLogout = () => {
-    try {
-      localStorage.removeItem('nkliat_active_user_id');
-    } catch (e) {
-      console.error(e);
-    }
-    setCurrentUser(null);
-  };
-
-  // Mandatory Authentication Gate for all network devices
-  if (!currentUser) {
-    return (
-      <LoginScreen
-        onLoginSuccess={(user) => {
-          setCurrentUser(user);
-        }}
-        isDarkMode={isDarkMode}
-        onToggleTheme={toggleTheme}
-      />
-    );
-  }
-
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-12 flex flex-col dir-rtl transition-colors duration-200">
       {/* App Main Header */}
@@ -204,8 +160,6 @@ export default function App() {
         onNavigate={handleNavigate}
         currentUser={currentUser}
         onSwitchUser={(u) => setCurrentUser(u)}
-        onOpenLogin={handleLogout}
-        onLogout={handleLogout}
         onOpenLicense={() => setIsLicenseModalOpen(true)}
         isDarkMode={isDarkMode}
         onToggleTheme={toggleTheme}
@@ -570,9 +524,6 @@ export default function App() {
 
         {/* BACKUP & RESTORE VIEW */}
         {activeTab === 'backup_restore' && <BackupRestore />}
-
-        {/* SERVER & LOCAL NETWORK (LAN) SETTINGS */}
-        {activeTab === 'server_settings' && <ServerSettingsView />}
       </main>
 
       {/* Voucher Printable Modal */}
@@ -672,7 +623,7 @@ export default function App() {
         isOpen={isLicenseModalOpen}
         onClose={() => setIsLicenseModalOpen(false)}
         onLicenseChanged={() => {
-          refreshData();
+          // Trigger refresh if needed
         }}
       />
     </div>
