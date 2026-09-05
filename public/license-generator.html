@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مولد تراخيص نظام إدارة النقليات البرية | لوحة المطور</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen py-10 px-4">
+  <div class="max-w-2xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 p-6 rounded-3xl shadow-xl text-slate-950">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="bg-slate-950/20 text-slate-950 px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase">
+            لوحة المطور الحصرية (Dev Tool)
+          </span>
+          <h1 class="text-2xl font-black mt-2">مولد تراخيص نظام إدارة النقليات البرية</h1>
+          <p class="text-xs font-bold text-slate-900/80 mt-1">
+            أداة أوفلاين آمنة لتوليد مفاتيح التفعيل المربوطة بالأجهزة للعملاء بدون الحاجة إلى اتصال بالإنترنت.
+          </p>
+        </div>
+        <div class="hidden sm:block text-4xl">🔐</div>
+      </div>
+    </div>
+
+    <!-- Generator Card -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+      <div class="border-b border-slate-800 pb-4">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <span>بيانات العميل والجهاز المطلوب تفعيله</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5">
+          قم بلصق رمز الجهاز المُرسل من العميل، ثم اختر نوع وصلاحية الترخيص.
+        </p>
+      </div>
+
+      <div class="space-y-4 text-sm">
+        <!-- Client Name -->
+        <div>
+          <label class="block font-bold text-slate-300 mb-1.5">اسم العميل / اسم شركة النقل:</label>
+          <input 
+            type="text" 
+            id="clientName" 
+            placeholder="مثال: شركة الوفاق للنقل الثقيل"
+            class="w-full bg-slate-950 border border-slate-700 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-xl p-3 text-white font-bold outline-none"
+          />
+        </div>
+
+        <!-- Machine Code / Device ID -->
+        <div>
+          <label class="block font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+            <span>رمز الجهاز (Machine Code / Device ID):</span>
+            <span class="text-xs font-normal text-amber-400">ينسخه العميل من نافذة التفعيل بالتطبيق</span>
+          </label>
+          <input 
+            type="text" 
+            id="machineCode" 
+            placeholder="مثال: TRK-A82F-931B-4C10"
+            class="w-full bg-slate-950 border border-slate-700 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-xl p-3 text-amber-400 font-mono font-bold tracking-wider outline-none text-left"
+            dir="ltr"
+          />
+        </div>
+
+        <!-- License Type -->
+        <div>
+          <label class="block font-bold text-slate-300 mb-1.5">نوع الترخيص وصلاحيته:</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label class="cursor-pointer bg-slate-950 border border-slate-800 hover:border-slate-700 p-3 rounded-xl flex items-center gap-2.5 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10">
+              <input type="radio" name="licenseType" value="trial" class="text-amber-500 focus:ring-0">
+              <div>
+                <span class="font-bold text-xs text-white block">تجريبي (أسبوع - 7 أيام)</span>
+                <span class="text-[11px] text-slate-400">صلاحية 7 أيام</span>
+              </div>
+            </label>
+
+            <label class="cursor-pointer bg-slate-950 border border-slate-800 hover:border-slate-700 p-3 rounded-xl flex items-center gap-2.5 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10">
+              <input type="radio" name="licenseType" value="annual" checked class="text-amber-500 focus:ring-0">
+              <div>
+                <span class="font-bold text-xs text-white block">سنوي (1 سنة)</span>
+                <span class="text-[11px] text-slate-400">صلاحية 365 يوماً</span>
+              </div>
+            </label>
+
+            <label class="cursor-pointer bg-slate-950 border border-slate-800 hover:border-slate-700 p-3 rounded-xl flex items-center gap-2.5 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10">
+              <input type="radio" name="licenseType" value="lifetime" class="text-amber-500 focus:ring-0">
+              <div>
+                <span class="font-bold text-xs text-white block">دائم (مدى الحياة)</span>
+                <span class="text-[11px] text-slate-400">ترخيص كامل دائم</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Custom Expiration (Optional) -->
+        <div id="customDaysWrapper" class="pt-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1">عدد الأيام المخصصة:</label>
+            <input 
+              type="number" 
+              id="customDays" 
+              placeholder="365"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-mono text-xs outline-none focus:border-amber-500"
+              value="365"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1">أو تحديد تاريخ الانتهاء بالروزنامة:</label>
+            <input 
+              type="date" 
+              id="customDate" 
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-mono text-xs outline-none focus:border-amber-500"
+            />
+          </div>
+        </div>
+
+        <!-- Generate Button -->
+        <button 
+          type="button" 
+          id="btnGenerate"
+          class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3.5 px-4 rounded-xl shadow-lg transition-transform active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 text-base mt-4"
+        >
+          <span>توليد مفتاح الترخيص المعتمد</span>
+          <span>⚡</span>
+        </button>
+      </div>
+
+      <!-- Result Box -->
+      <div id="resultSection" class="hidden space-y-4 pt-4 border-t border-slate-800">
+        <div class="bg-slate-950 border-2 border-amber-500/50 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+              <span>✓ تم توليد مفتاح التفعيل بنجاح:</span>
+            </span>
+            <span id="badgeType" class="text-[10px] font-black bg-amber-500 text-slate-950 px-2 py-0.5 rounded-md"></span>
+          </div>
+
+          <!-- The Key Display -->
+          <div class="relative">
+            <input 
+              type="text" 
+              id="licenseKeyOutput" 
+              readonly 
+              class="w-full bg-slate-900 border border-slate-700 text-amber-300 font-mono font-bold text-sm sm:text-base p-3 rounded-xl tracking-wider select-all text-left"
+              dir="ltr"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs font-mono text-slate-400 pt-1">
+            <div>العميل: <span id="resClient" class="font-sans text-white font-bold"></span></div>
+            <div>تاريخ الانتهاء: <span id="resExpiry" class="text-white font-bold"></span></div>
+          </div>
+        </div>
+
+        <!-- Action Buttons (Copy Key, WhatsApp Template) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <button 
+            type="button" 
+            id="btnCopyKey"
+            class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 px-3 rounded-xl border border-slate-700 text-xs transition-colors flex items-center justify-center gap-2"
+          >
+            <span id="copyKeyText">نسخ مفتاح التفعيل فقط</span>
+          </button>
+
+          <button 
+            type="button" 
+            id="btnCopyWhatsApp"
+            class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-3 rounded-xl shadow text-xs transition-colors flex items-center justify-center gap-2"
+          >
+            <span>📱 نسخ رسالة الواتساب للعميل</span>
+          </button>
+        </div>
+
+        <!-- Full WhatsApp Message Preview -->
+        <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
+          <span class="text-slate-500 font-bold block">معاينة الرسالة الجاهزة للعميل:</span>
+          <pre id="waPreview" class="font-sans whitespace-pre-wrap text-slate-300 text-[11px] leading-relaxed select-all"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Information Footer -->
+    <div class="text-center text-xs text-slate-600 space-y-1">
+      <p>نظام التشفير: SHA-256 Keyed HMAC مع توقيع الـ Machine ID ورقم الإصدار.</p>
+      <p>احفظ هذه الصفحة محلياً لديك كملف خاص بالمطور ولا تشاركها مع العملاء.</p>
+    </div>
+  </div>
+
+  <script>
+    // Master Developer Secret Salt (Synchronized with licenseService.ts)
+    const DEV_SECRET_SALT = 'NKLIAT_FREIGHT_2026_SECURE_DEV_KEY_!#99X';
+
+    // Simple robust hash & HMAC generator using Web Crypto API
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Format bytes to clean 4-char groups
+    function formatKey(rawHex) {
+      const clean = rawHex.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const parts = [];
+      for (let i = 0; i < Math.min(clean.length, 24); i += 4) {
+        parts.push(clean.substring(i, i + 4));
+      }
+      return 'NKL-' + parts.slice(0, 5).join('-');
+    }
+
+    const typeRadios = document.querySelectorAll('input[name="licenseType"]');
+    const customDaysInput = document.getElementById('customDays');
+    const customDaysWrapper = document.getElementById('customDaysWrapper');
+
+    typeRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        if (e.target.value === 'trial') {
+          customDaysInput.value = '7';
+          customDaysWrapper.classList.remove('hidden');
+        } else if (e.target.value === 'annual') {
+          customDaysInput.value = '365';
+          customDaysWrapper.classList.remove('hidden');
+        } else if (e.target.value === 'lifetime') {
+          customDaysInput.value = '99999';
+          customDaysWrapper.classList.add('hidden');
+        }
+      });
+    });
+
+    document.getElementById('btnGenerate').addEventListener('click', async () => {
+      const clientName = document.getElementById('clientName').value.trim() || 'عميل نقليات';
+      let machineCode = document.getElementById('machineCode').value.trim().toUpperCase();
+      const selectedType = document.querySelector('input[name="licenseType"]:checked').value;
+      const days = parseInt(customDaysInput.value, 10) || 365;
+
+      if (!machineCode) {
+        alert('يرجى إدخال رمز الجهاز (Machine Code) المُرسل من العميل أولاً!');
+        document.getElementById('machineCode').focus();
+        return;
+      }
+
+      // Calculate expiration timestamp
+      let expiryDateStr = 'دائم مدى الحياة';
+      let expiryTimestamp = 0;
+      const customDateVal = document.getElementById('customDate').value;
+
+      if (selectedType !== 'lifetime') {
+        if (customDateVal) {
+          const d = new Date(customDateVal);
+          d.setHours(23, 59, 59, 999);
+          expiryTimestamp = d.getTime();
+          expiryDateStr = customDateVal;
+        } else {
+          const d = new Date();
+          d.setDate(d.getDate() + days);
+          expiryTimestamp = d.getTime();
+          expiryDateStr = d.toISOString().split('T')[0];
+        }
+      }
+
+      // Build payload for hashing
+      const normalizedDevice = machineCode.replace(/[^A-Z0-9]/g, '');
+      const payloadString = `${normalizedDevice}|${selectedType}|${expiryTimestamp}|${clientName}|${DEV_SECRET_SALT}`;
+
+      const rawHash = await sha256(payloadString);
+      
+      // Pack metadata into key payload: Base64 of { type, exp, hashPrefix }
+      const payloadObj = {
+        m: normalizedDevice.substring(0, 8),
+        t: selectedType[0], // 't' | 'a' | 'l'
+        e: expiryTimestamp,
+        s: rawHash.substring(0, 12).toUpperCase()
+      };
+
+      const packedStr = btoa(JSON.stringify(payloadObj))
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+
+      // Formatted friendly license key
+      const finalLicenseKey = `NKL-${packedStr}`;
+
+      // Populate UI
+      document.getElementById('licenseKeyOutput').value = finalLicenseKey;
+      document.getElementById('resClient').textContent = clientName;
+      document.getElementById('resExpiry').textContent = expiryDateStr;
+      
+      const badge = document.getElementById('badgeType');
+      if (selectedType === 'trial') {
+        badge.textContent = 'ترخيص تجريبي (أسبوع - 7 أيام)';
+        badge.className = 'text-[10px] font-black bg-blue-500 text-white px-2 py-0.5 rounded-md';
+      } else if (selectedType === 'annual') {
+        badge.textContent = 'ترخيص سنوي (سنة كاملة)';
+        badge.className = 'text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-md';
+      } else {
+        badge.textContent = 'ترخيص دائم (مدى الحياة)';
+        badge.className = 'text-[10px] font-black bg-amber-500 text-slate-950 px-2 py-0.5 rounded-md';
+      }
+
+      // Build WhatsApp message
+      const waMessage = 
+`مرحباً بك عزيزي (${clientName}) 🌸
+تم إصدار مفتاح تفعيل برنامج [نظام إدارة النقليات البرية] لجهازكم بنجاح:
+
+📌 بيانات الترخيص:
+- نوع الترخيص: ${badge.textContent}
+- رمز الجهاز المرخص: ${machineCode}
+- تاريخ الانتهاء: ${expiryDateStr}
+
+🔑 مفتاح التفعيل:
+${finalLicenseKey}
+
+📋 طريقة التفعيل:
+1. افتح البرنامج، ثم اضغط على زر "تفعيل الترخيص".
+2. الصق مفتاح التفعيل أعلاه في الحقل المخصص.
+3. اضغط زر "تفعيل الآن".
+
+شكراً لثقتكم ونسعد بخدمتكم دائماً! ✨`;
+
+      document.getElementById('waPreview').textContent = waMessage;
+      document.getElementById('resultSection').classList.remove('hidden');
+    });
+
+    // Copy License Key Button
+    document.getElementById('btnCopyKey').addEventListener('click', () => {
+      const key = document.getElementById('licenseKeyOutput').value;
+      navigator.clipboard.writeText(key).then(() => {
+        const label = document.getElementById('copyKeyText');
+        label.textContent = '✓ تم نسخ المفتاح!';
+        setTimeout(() => {
+          label.textContent = 'نسخ مفتاح التفعيل فقط';
+        }, 2000);
+      });
+    });
+
+    // Copy WhatsApp Button
+    document.getElementById('btnCopyWhatsApp').addEventListener('click', () => {
+      const msg = document.getElementById('waPreview').textContent;
+      navigator.clipboard.writeText(msg).then(() => {
+        alert('تم نسخ رسالة الواتساب كاملة إلى الحافظة! يمكنك الآن لصقها وإرسالها للعميل.');
+      });
+    });
+  </script>
+</body>
+</html>

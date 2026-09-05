@@ -138,7 +138,8 @@ export type ViewTab =
   | 'vouchers_list'
   | 'reports'
   | 'users'
-  | 'backup_restore';
+  | 'backup_restore'
+  | 'server_settings';
 
 export type ReportType =
   | 'account_statement'
