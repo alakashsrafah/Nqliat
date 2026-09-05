@@ -410,7 +410,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </button>
 
-          {/* Backup & Storage */}
+          {/* Backup & SQLite Storage */}
           <button
             onClick={() => onNavigate('backup_restore')}
             className="p-5 bg-white dark:bg-slate-900 hover:bg-amber-50/50 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-sm text-right transition-all flex flex-col justify-between h-40 group hover:-translate-y-1 active:scale-98 cursor-pointer"
@@ -420,13 +420,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <HardDrive className="w-7 h-7" />
               </div>
               <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">
-                مجلد nkliat
+                SQLite ومجلد nkliat
               </span>
             </div>
             <div>
-              <div className="font-bold text-slate-900 dark:text-white text-base">النسخ الاحتياطي والمشاركة</div>
+              <div className="font-bold text-slate-900 dark:text-white text-base">قاعدة بيانات SQLite والنسخ</div>
               <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                حفظ بذاكرة الهاتف بالمسار المخصص أو مشاركته عبر الواتساب
+                حفظ ملف SQLite (.sqlite / .sql) بمجلد nkliat أو المشاركة عبر الواتساب
               </div>
             </div>
           </button>

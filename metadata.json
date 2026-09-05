@@ -1,6 +1,6 @@
 {
   "name": "إدارة شركة النقل البري",
-  "description": "تطبيق أندرويد متكامل ومحلي بالكامل (Offline-First) لإدارة العمليات المالية والتشغيلية وأوامر الشحن وشجرة الحسابات والتقارير المالية بشركة نقل بري.",
+  "description": "تطبيق أندرويد متكامل ومحلي بالكامل (Offline-First) مدعوم بتقنية SQLite لإدارة العمليات المالية والتشغيلية وأوامر الشحن وشجرة الحسابات وحفظ النسخ بمجلد Documents/nkliat.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

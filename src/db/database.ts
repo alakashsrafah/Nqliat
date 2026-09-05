@@ -300,6 +300,14 @@ class OfflineDatabase {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.schema));
   }
 
+  public getRawData(): DatabaseSchema {
+    return JSON.parse(JSON.stringify(this.schema));
+  }
+
+  public replaceEntireDatabase(newSchema: DatabaseSchema): void {
+    this.saveDatabase(newSchema);
+  }
+
   public exportJSON(): string {
     return JSON.stringify(this.schema, null, 2);
   }
