@@ -150,6 +150,7 @@ class SQLiteService {
       'CREATE TABLE IF NOT EXISTS shipment_orders (',
       '  id INTEGER PRIMARY KEY,',
       '  reference_number TEXT UNIQUE NOT NULL,',
+      '  order_number TEXT,',
       '  vehicle_id INTEGER NOT NULL,',
       '  merchant_account_code TEXT NOT NULL,',
       '  trip_amount REAL NOT NULL DEFAULT 0,',
@@ -158,12 +159,16 @@ class SQLiteService {
       '  departure_point TEXT NOT NULL,',
       '  arrival_point TEXT NOT NULL,',
       '  route TEXT NOT NULL,',
+      '  trip_route TEXT,',
       '  payload_weight REAL NOT NULL DEFAULT 0,',
+      '  cargo_weight REAL NOT NULL DEFAULT 0,',
+      '  goods_type TEXT NOT NULL,',
+      '  cargo_type TEXT,',
       '  road_length REAL NOT NULL DEFAULT 0,',
       '  departure_date TEXT NOT NULL,',
       '  arrival_date TEXT NOT NULL,',
       '  driver_name TEXT NOT NULL,',
-      '  goods_type TEXT NOT NULL,',
+      '  status TEXT,',
       '  notes TEXT,',
       '  is_financially_posted INTEGER NOT NULL DEFAULT 0,',
       '  voucher_id INTEGER,',
@@ -250,8 +255,9 @@ class SQLiteService {
 
     // Insert Shipment Orders
     for (const so of schema.shipment_orders || []) {
+      const statusText = so.is_financially_posted ? 'مرحل مالياً' : 'قيد التشغيل';
       lines.push(
-        `INSERT INTO shipment_orders (id, reference_number, vehicle_id, merchant_account_code, trip_amount, trip_currency_code, trip_exchange_rate, departure_point, arrival_point, route, payload_weight, road_length, departure_date, arrival_date, driver_name, goods_type, notes, is_financially_posted, voucher_id, created_by, created_at) VALUES (${esc(so.id)}, ${esc(so.reference_number)}, ${esc(so.vehicle_id)}, ${esc(so.merchant_account_code)}, ${esc(so.trip_amount)}, ${esc(so.trip_currency_code)}, ${esc(so.trip_exchange_rate)}, ${esc(so.departure_point)}, ${esc(so.arrival_point)}, ${esc(so.route)}, ${esc(so.payload_weight)}, ${esc(so.road_length)}, ${esc(so.departure_date)}, ${esc(so.arrival_date)}, ${esc(so.driver_name)}, ${esc(so.goods_type)}, ${esc(so.notes || '')}, ${esc(so.is_financially_posted)}, ${esc(so.voucher_id)}, ${esc(so.created_by)}, ${esc(so.created_at)});`
+        `INSERT INTO shipment_orders (id, reference_number, order_number, vehicle_id, merchant_account_code, trip_amount, trip_currency_code, trip_exchange_rate, departure_point, arrival_point, route, trip_route, payload_weight, cargo_weight, goods_type, cargo_type, road_length, departure_date, arrival_date, driver_name, status, notes, is_financially_posted, voucher_id, created_by, created_at) VALUES (${esc(so.id)}, ${esc(so.reference_number)}, ${esc(so.reference_number)}, ${esc(so.vehicle_id)}, ${esc(so.merchant_account_code)}, ${esc(so.trip_amount)}, ${esc(so.trip_currency_code)}, ${esc(so.trip_exchange_rate)}, ${esc(so.departure_point)}, ${esc(so.arrival_point)}, ${esc(so.route)}, ${esc(so.route)}, ${esc(so.payload_weight)}, ${esc(so.payload_weight)}, ${esc(so.goods_type)}, ${esc(so.goods_type)}, ${esc(so.road_length)}, ${esc(so.departure_date)}, ${esc(so.arrival_date)}, ${esc(so.driver_name)}, ${esc(statusText)}, ${esc(so.notes || '')}, ${esc(so.is_financially_posted)}, ${esc(so.voucher_id)}, ${esc(so.created_by)}, ${esc(so.created_at)});`
       );
     }
 

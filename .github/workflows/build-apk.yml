@@ -57,13 +57,17 @@ jobs:
           echo "Syncing Capacitor Android platform..."
           npx cap sync android
 
-      - name: Configure Storage Permissions for Documents/nkliat
+      - name: Configure Storage and Microphone Permissions
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           if [ -f "$MANIFEST" ]; then
             if ! grep -q "WRITE_EXTERNAL_STORAGE" "$MANIFEST"; then
               sed -i '/<\/manifest>/i \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" \/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" \/>\n    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" \/>' "$MANIFEST"
               echo "Added READ/WRITE_EXTERNAL_STORAGE permissions to AndroidManifest.xml"
+            fi
+            if ! grep -q "RECORD_AUDIO" "$MANIFEST"; then
+              sed -i '/<\/manifest>/i \    <uses-permission android:name="android.permission.RECORD_AUDIO" \/>\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" \/>' "$MANIFEST"
+              echo "Added RECORD_AUDIO permissions to AndroidManifest.xml"
             fi
           fi
 

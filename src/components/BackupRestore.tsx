@@ -623,7 +623,7 @@ export const BackupRestore: React.FC = () => {
             </button>
             <button
               onClick={() => {
-                const q = 'SELECT id, order_number, trip_route, cargo_type, trip_amount, status FROM shipment_orders LIMIT 8;';
+                const q = 'SELECT id, order_number, driver_name, trip_route, cargo_type, trip_amount, status FROM shipment_orders LIMIT 8;';
                 setSqlQuery(q);
                 handleExecuteQuery(q);
               }}

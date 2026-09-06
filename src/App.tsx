@@ -18,6 +18,8 @@ import { ReportsViewer } from './components/ReportsViewer';
 import { UsersManager } from './components/UsersManager';
 import { BackupRestore } from './components/BackupRestore';
 import { LicenseModal } from './components/LicenseModal';
+import { VoiceSearchBar } from './components/VoiceSearchBar';
+import { normalizeArabic } from './utils/arabicUtils';
 
 import {
   Plus,
@@ -65,7 +67,9 @@ export default function App() {
 
   // Lists state
   const [voucherFilter, setVoucherFilter] = useState<string>('all');
+  const [voucherSearchText, setVoucherSearchText] = useState<string>('');
   const [shipmentFilter, setShipmentFilter] = useState<string>('all');
+  const [shipmentSearchText, setShipmentSearchText] = useState<string>('');
   const [selectedVoucherForPrint, setSelectedVoucherForPrint] = useState<VoucherHeader | null>(null);
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState<boolean>(false);
 
@@ -121,21 +125,87 @@ export default function App() {
     setActiveTab('vouchers');
   };
 
-  // Vouchers list logic
+  // Vouchers list logic with Voice & Multi-Field Search
   const allVouchers = db.getVouchers();
   const filteredVouchers = allVouchers.filter((v) => {
-    if (voucherFilter === 'receipt') return v.type_id === 1;
-    if (voucherFilter === 'payment') return v.type_id === 2;
-    if (voucherFilter === 'journal') return v.type_id === 3;
-    if (voucherFilter === 'shipment') return v.type_id === 4;
+    if (voucherFilter === 'receipt' && v.type_id !== 1) return false;
+    if (voucherFilter === 'payment' && v.type_id !== 2) return false;
+    if (voucherFilter === 'journal' && v.type_id !== 3) return false;
+    if (voucherFilter === 'shipment' && v.type_id !== 4) return false;
+
+    if (voucherSearchText.trim()) {
+      const q = normalizeArabic(voucherSearchText);
+      const numStr = String(v.number);
+      const desc = normalizeArabic(v.description || '');
+      const date = v.date || '';
+      const amountStr = String(v.amount);
+      const curr = normalizeArabic(v.currency_code || '');
+
+      // Direct voucher attributes match
+      if (numStr.includes(q) || desc.includes(q) || date.includes(q) || amountStr.includes(q) || curr.includes(q)) {
+        return true;
+      }
+
+      // Check journal entries accounts & descriptions
+      const entries = db.getJournalEntriesByVoucher(v.id);
+      const matchedEntry = entries.some((e) => {
+        const acc = db.getAccounts().find((a) => a.account_code === e.account_code);
+        const accName = normalizeArabic(acc?.account_name || '');
+        const entryDesc = normalizeArabic(e.description || '');
+        return (
+          e.account_code.includes(q) ||
+          entryDesc.includes(q) ||
+          accName.includes(q)
+        );
+      });
+      return matchedEntry;
+    }
+
     return true;
   });
 
-  // Shipments list logic
+  // Shipments list logic with Voice & Multi-Field Search
   const allShipments = db.getShipmentOrders();
   const filteredShipments = allShipments.filter((s) => {
-    if (shipmentFilter === 'draft') return s.is_financially_posted === 0;
-    if (shipmentFilter === 'posted') return s.is_financially_posted === 1;
+    if (shipmentFilter === 'draft' && s.is_financially_posted !== 0) return false;
+    if (shipmentFilter === 'posted' && s.is_financially_posted !== 1) return false;
+
+    if (shipmentSearchText.trim()) {
+      const q = normalizeArabic(shipmentSearchText);
+      const v = db.getVehicles().find((vh) => vh.id === s.vehicle_id);
+      const acc = db.getAccounts().find((a) => a.account_code === s.merchant_account_code);
+
+      const ref = normalizeArabic(s.reference_number || '');
+      const driver = normalizeArabic(s.driver_name || '');
+      const goods = normalizeArabic(s.goods_type || '');
+      const dep = normalizeArabic(s.departure_point || '');
+      const arr = normalizeArabic(s.arrival_point || '');
+      const route = normalizeArabic(s.route || '');
+      const notes = normalizeArabic(s.notes || '');
+      const vehName = normalizeArabic(v?.vehicle_name || '');
+      const vehNum = normalizeArabic(v?.vehicle_number || '');
+      const vehCode = normalizeArabic(v?.vehicle_code || '');
+      const merchantName = normalizeArabic(acc?.account_name || '');
+      const amountStr = String(s.trip_amount);
+      const date = s.departure_date || '';
+
+      return (
+        ref.includes(q) ||
+        driver.includes(q) ||
+        goods.includes(q) ||
+        dep.includes(q) ||
+        arr.includes(q) ||
+        route.includes(q) ||
+        notes.includes(q) ||
+        vehName.includes(q) ||
+        vehNum.includes(q) ||
+        vehCode.includes(q) ||
+        merchantName.includes(q) ||
+        amountStr.includes(q) ||
+        date.includes(q)
+      );
+    }
+
     return true;
   });
 
@@ -303,6 +373,28 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Voice & Smart Text Search Bar for Vouchers */}
+                  <div className="bg-slate-50 dark:bg-slate-950/60 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                    <VoiceSearchBar
+                      id="vouchers-voice-search"
+                      value={voucherSearchText}
+                      onChange={setVoucherSearchText}
+                      placeholder="ابحث برقم السند، البيان، الحساب، أو اضغط الميكروفون وتحدث..."
+                      helperHints={['وقود', 'قبض نقدية', '101', 'صيانة']}
+                    />
+                    {voucherSearchText && (
+                      <div className="mt-2 text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
+                        <span>نتائج البحث عن "{voucherSearchText}": ({filteredVouchers.length} سند)</span>
+                        <button
+                          onClick={() => setVoucherSearchText('')}
+                          className="text-rose-600 dark:text-rose-400 hover:underline"
+                        >
+                          إلغاء تصفية البحث
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="overflow-x-auto">
                     <table className="w-full text-right text-xs sm:text-sm">
                       <thead className="bg-slate-900 text-white font-bold">
@@ -362,6 +454,20 @@ export default function App() {
                         })}
                       </tbody>
                     </table>
+                    {filteredVouchers.length === 0 && (
+                      <div className="text-center py-12 text-slate-500 dark:text-slate-400 space-y-2">
+                        <FileText className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600" />
+                        <p className="text-sm font-bold">لا توجد سندات مطابقة لمعايير البحث الحالية</p>
+                        {voucherSearchText && (
+                          <button
+                            onClick={() => setVoucherSearchText('')}
+                            className="text-xs text-amber-600 dark:text-amber-400 font-bold hover:underline"
+                          >
+                            مسح نص البحث الصوتي وعرض الكل
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -405,14 +511,14 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* Filter Tabs */}
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                  <div className="flex items-center gap-2 text-xs font-bold border-b border-slate-100 pb-3">
-                    <span className="text-slate-500">حالة أمر الشحن:</span>
+                {/* Filter Tabs & Search */}
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-4">
+                  <div className="flex items-center gap-2 text-xs font-bold border-b border-slate-100 dark:border-slate-800 pb-3 overflow-x-auto">
+                    <span className="text-slate-500 dark:text-slate-400">حالة أمر الشحن:</span>
                     <button
                       onClick={() => setShipmentFilter('all')}
-                      className={`px-3 py-1 rounded-lg ${
-                        shipmentFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'
+                      className={`px-3 py-1.5 rounded-xl cursor-pointer transition-colors ${
+                        shipmentFilter === 'all' ? 'bg-slate-900 text-white dark:bg-amber-500 dark:text-slate-950 font-bold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       كافة أوامر الشحن ({allShipments.length})
@@ -433,6 +539,28 @@ export default function App() {
                     >
                       معتمدة مالياً
                     </button>
+                  </div>
+
+                  {/* Voice & Smart Text Search Bar for Shipments */}
+                  <div className="bg-slate-50 dark:bg-slate-950/60 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                    <VoiceSearchBar
+                      id="shipments-voice-search"
+                      value={shipmentSearchText}
+                      onChange={setShipmentSearchText}
+                      placeholder="ابحث برقم الشحن، السائق، البضاعة، المسار، أو اضغط الميكروفون وتحدث..."
+                      helperHints={['SH-2026', 'أحمد', 'أسمنت', 'صنعاء', 'عدن']}
+                    />
+                    {shipmentSearchText && (
+                      <div className="mt-2 text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
+                        <span>نتائج البحث عن "{shipmentSearchText}": ({filteredShipments.length} أمر شحن)</span>
+                        <button
+                          onClick={() => setShipmentSearchText('')}
+                          className="text-rose-600 dark:text-rose-400 hover:underline"
+                        >
+                          إلغاء تصفية البحث
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Shipments Cards Grid */}
@@ -510,6 +638,20 @@ export default function App() {
                       );
                     })}
                   </div>
+                  {filteredShipments.length === 0 && (
+                    <div className="text-center py-12 text-slate-500 dark:text-slate-400 space-y-2">
+                      <Truck className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600" />
+                      <p className="text-sm font-bold">لا توجد أوامر شحن مطابقة لمعايير البحث الحالية</p>
+                      {shipmentSearchText && (
+                        <button
+                          onClick={() => setShipmentSearchText('')}
+                          className="text-xs text-amber-600 dark:text-amber-400 font-bold hover:underline"
+                        >
+                          مسح نص البحث الصوتي وعرض الكل
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

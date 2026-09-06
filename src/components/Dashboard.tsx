@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ViewTab, User } from '../types';
 import { db } from '../db/database';
+import { VoiceSearchBar } from './VoiceSearchBar';
+import { normalizeArabic } from '../utils/arabicUtils';
 import {
   FilePlus,
   ArrowDownLeft,
@@ -76,6 +78,41 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const isAdmin = currentUser?.user_type === 'مدير';
 
+  // Voice Search Query State & Results
+  const [quickVoiceQuery, setQuickVoiceQuery] = useState<string>('');
+
+  const allVouchers = db.getVouchers();
+  const qNorm = normalizeArabic(quickVoiceQuery);
+
+  const matchedShipments = quickVoiceQuery.trim()
+    ? shipmentOrders.filter((s) => {
+        const v = vehicles.find((vh) => vh.id === s.vehicle_id);
+        const ref = normalizeArabic(s.reference_number || '');
+        const driver = normalizeArabic(s.driver_name || '');
+        const goods = normalizeArabic(s.goods_type || '');
+        const dep = normalizeArabic(s.departure_point || '');
+        const arr = normalizeArabic(s.arrival_point || '');
+        const vehName = normalizeArabic(v?.vehicle_name || '');
+        return (
+          ref.includes(qNorm) ||
+          driver.includes(qNorm) ||
+          goods.includes(qNorm) ||
+          dep.includes(qNorm) ||
+          arr.includes(qNorm) ||
+          vehName.includes(qNorm)
+        );
+      }).slice(0, 4)
+    : [];
+
+  const matchedVouchers = quickVoiceQuery.trim()
+    ? allVouchers.filter((v) => {
+        const num = String(v.number);
+        const desc = normalizeArabic(v.description || '');
+        const date = v.date || '';
+        return num.includes(qNorm) || desc.includes(qNorm) || date.includes(qNorm);
+      }).slice(0, 4)
+    : [];
+
   return (
     <div className="space-y-6">
       {/* 1. Welcome Banner */}
@@ -112,6 +149,112 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Voice & Fast Quick Search Bar */}
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-3xl shadow-sm border border-slate-200/90 dark:border-slate-800 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="p-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
+              <Truck className="w-4 h-4" />
+            </span>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+              البحث الصوتي الفوري في أوامر الشحن والسندات اليومية
+            </h3>
+          </div>
+          <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+            يدعم الأوفلاين 100%
+          </span>
+        </div>
+
+        <VoiceSearchBar
+          id="dashboard-voice-search"
+          value={quickVoiceQuery}
+          onChange={setQuickVoiceQuery}
+          placeholder="ابحث صوتياً أو كتابياً: اضغط الميكروفون وتحدث برقم الشحن، اسم السائق، أو نوع السند..."
+          helperHints={['SH-2026', 'سند قبض', 'أسمنت', 'وقود ديزل']}
+        />
+
+        {/* Dynamic Voice Match Results */}
+        {quickVoiceQuery.trim() && (
+          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400">
+              <span>نتائج البحث الفوري عن "{quickVoiceQuery}":</span>
+              <button
+                onClick={() => setQuickVoiceQuery('')}
+                className="text-rose-600 dark:text-rose-400 hover:underline"
+              >
+                إغلاق النتائج
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Matched Shipments */}
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 block">
+                  أوامر الشحن المطابقة ({matchedShipments.length}):
+                </span>
+                {matchedShipments.length > 0 ? (
+                  matchedShipments.map((s) => (
+                    <div
+                      key={s.id}
+                      onClick={() => handleOpenShipment(s.id)}
+                      className="p-3 bg-slate-50 dark:bg-slate-800/80 hover:bg-amber-50 dark:hover:bg-amber-950/30 border border-slate-200 dark:border-slate-700 rounded-2xl cursor-pointer transition-all flex items-center justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900 dark:text-white">
+                          <span className="font-mono text-amber-600">{s.reference_number}</span>
+                          <span>- {s.goods_type}</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          السائق: {s.driver_name} | المسار: {s.departure_point} ← {s.arrival_point}
+                        </p>
+                      </div>
+                      <span className="text-xs font-mono font-bold text-emerald-600">
+                        {s.trip_amount.toLocaleString()} {s.trip_currency_code}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-400 py-1">لا توجد أوامر شحن مطابقة</p>
+                )}
+              </div>
+
+              {/* Matched Vouchers */}
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 block">
+                  السندات المالية المطابقة ({matchedVouchers.length}):
+                </span>
+                {matchedVouchers.length > 0 ? (
+                  matchedVouchers.map((v) => (
+                    <div
+                      key={v.id}
+                      onClick={() => onNavigate('vouchers')}
+                      className="p-3 bg-slate-50 dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/30 border border-slate-200 dark:border-slate-700 rounded-2xl cursor-pointer transition-all flex items-center justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900 dark:text-white">
+                          <span className="font-mono text-blue-600">#{v.number}</span>
+                          <span>
+                            {v.type_id === 1 ? 'سند قبض' : v.type_id === 2 ? 'سند صرف' : 'قيد يومية'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[200px]">
+                          {v.description}
+                        </p>
+                      </div>
+                      <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
+                        {v.date}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-400 py-1">لا توجد سندات مطابقة</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 2. Primary KPIs Stat Cards */}
